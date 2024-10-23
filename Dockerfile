@@ -4,6 +4,9 @@ FROM node:21 AS build
 # Set the working directory in the container
 WORKDIR /app
 
+# Add a unique argument to invalidate cache when package.json changes
+ARG CACHEBUST=1
+
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
@@ -19,14 +22,8 @@ COPY . .
 # Build the Angular app in production mode
 RUN ng build
 
-# Stage 2: Use a smaller, nginx-based image to serve the app
-FROM nginx:1.21-alpine
-
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Create log directory configured in nginx.conf
-RUN mkdir -p /var/log/app_engine
+# Use the official Nginx image as the final base image
+FROM nginx:latest
 
 # Copy the built app from the previous stage to the nginx web server directory
 COPY --from=build /app/dist/driver-pay /usr/share/nginx/html
