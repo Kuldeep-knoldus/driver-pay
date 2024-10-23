@@ -36,7 +36,8 @@ name: 'Build and Deploy to GKE'
 on:
   push:
     branches:
-      - '"master"'
+      - '**'
+
 
 env:
   PROJECT_ID: 'decent-core-438006-u1'
