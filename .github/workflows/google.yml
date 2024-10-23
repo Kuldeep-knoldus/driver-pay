@@ -69,18 +69,11 @@ jobs:
       # Step 10: Deploy to GKE
       - name: Deploy to GKE
         run: |
+          echo "Getting credentials for cluster $CLUSTER_NAME in region $REGION"
           gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --region ${{ env.REGION }} --project ${{ env.PROJECT_ID }}
-          # Apply Kubernetes manifests to create the deployment (if not exists)
-          echo "Applying Kubernetes manifests"
-          kubectl apply -f ./k8s/
-          
-          # Check if the deployment exists before setting the image
-          if kubectl get deployment driver-pay; then
-            echo "Deployment exists, updating the image"
-            kubectl set image deployment/driver-pay driver-pay=gcr.io/${{ env.PROJECT_ID }}/driver-pay:$COMMIT_SHA
-          else
-            echo "Deployment not found. Check your manifests or ensure the deployment exists."
-          fi
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+          sed -i "s|gcr.io/decent-core-438006-u1/$SERVICE_NAME:latest|gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA|g" k8s/deployment.yaml
+          kubectl apply -f k8s/
 
       # Step 11: Check deployment status
       - name: Check deployment status
