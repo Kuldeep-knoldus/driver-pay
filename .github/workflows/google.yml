@@ -67,7 +67,7 @@ jobs:
           COMMIT_SHA=$(git rev-parse --short HEAD)
           SERVICE_NAME='driver-pay'
           echo "Building and pushing Docker image for $SERVICE_NAME"
-          IMAGE_NAME=gcr.io/$PROJECT_ID/$SERVICE_NAME:$COMMIT_SHA
+          IMAGE_NAME=gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
@@ -80,6 +80,6 @@ jobs:
           SERVICE_NAME='driver-pay'
           echo "Deploying $SERVICE_NAME to GKE"
           if [ -d "$SERVICE_NAME/k8s" ]; then
-            sed -i "s|gcr.io/$PROJECT_ID/$SERVICE_NAME:latest|gcr.io/$PROJECT_ID/$SERVICE_NAME:$COMMIT_SHA|g" $SERVICE_NAME/k8s/deployment.yaml
+            sed -i "s|gcr.io/decent-core-438006-u1/$SERVICE_NAME:latest|gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA|g" $SERVICE_NAME/k8s/deployment.yaml
             kubectl apply -f $SERVICE_NAME/k8s/
           fi
