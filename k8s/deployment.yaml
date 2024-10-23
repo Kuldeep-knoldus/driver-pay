@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: driver-pay
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: driver-pay
+  template:
+    metadata:
+      labels:
+        app: driver-pay
+    spec:
+      containers:
+        - name: driver-pay
+          image: gcr.io/decent-core-438006-u1/driver-pay:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          imagePullPolicy: Always
