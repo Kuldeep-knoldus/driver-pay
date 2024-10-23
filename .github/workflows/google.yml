@@ -78,7 +78,6 @@ jobs:
           gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
           COMMIT_SHA=$(git rev-parse --short HEAD)
           SERVICE_NAME='driver-pay'
-          echo "Getting credentials for cluster ${{CLUSTER_NAME}} in region ${{REGION}}"
           echo "Deploying $SERVICE_NAME to GKE"
           if [ -d "$SERVICE_NAME/k8s" ]; then
             sed -i "s|gcr.io/decent-core-438006-u1/$SERVICE_NAME:latest|gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA|g" $SERVICE_NAME/k8s/deployment.yaml
