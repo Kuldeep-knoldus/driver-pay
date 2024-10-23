@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: driver-pay
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: driver-pay
@@ -16,5 +16,12 @@ spec:
         - name: driver-pay
           image: gcr.io/decent-core-438006-u1/driver-pay:latest
           ports:
-            - containerPort: 8080
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
           imagePullPolicy: Always

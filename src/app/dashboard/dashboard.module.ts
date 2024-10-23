@@ -13,7 +13,8 @@ import {MaterialModule} from "../shared/module/material/material.module";
   ],
   exports: [
     HeaderComponent,
-    MaterialModule
+    MaterialModule,
+    DriverPayComponent
 
   ],
   imports: [

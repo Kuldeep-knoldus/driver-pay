@@ -7,19 +7,19 @@ import {DashboardComponent} from './dashboard/dashboard.component';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {DashboardModule} from "./dashboard/dashboard.module";
 import {MaterialModule} from "./shared/module/material/material.module";
-import {BreadcrumbsComponent} from "ngx-breadcrumpy";
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    DashboardComponent
+    DashboardComponent,
+    PageNotFoundComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     MaterialModule,
-    DashboardModule,
-    BreadcrumbsComponent
+    DashboardModule
   ],
   providers: [
     provideAnimationsAsync()
