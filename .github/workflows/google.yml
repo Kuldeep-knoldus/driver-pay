@@ -10,73 +10,82 @@ env:
   SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
   CLUSTER_NAME: 'driver-pay-cluster'
   REGION: 'asia-south1'
-  REGISTRY_NAME: 'driver-pay'
 
 jobs:
-  setup-build-publish-deploy:
-    name: 'Setup, Build, Publish, and Deploy'
-    runs-on: 'ubuntu-latest'
+  build-deploy:
+    name: 'Build, Push Docker Image, and Deploy to GKE'
+    runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Node.js for Angular projects
+      # Step 2: Set up Node.js for Angular
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '21'
+          node-version: '20'
 
-      # Build Angular projects
-      - name: Build Projects
+      # Step 3: Install dependencies and run tests
+      - name: Install dependencies and run tests
         run: |
-          npm install && npm test
+          npm install
+          npm test
 
-      # Set up Docker Buildx
+      # Step 4: Set up Docker Buildx
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      # Setup Google Cloud SDK
+      # Step 5: Set up Google Cloud SDK
       - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.0
+        uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ env.PROJECT_ID }}
           service_account_key: ${{ env.SERVICE_ACCOUNT_KEY }}
 
-      # Authenticate to Google Cloud
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v0.5.0
+      # Step 6: Authenticate Google Cloud
+      - name: Authenticate Google Cloud
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ env.SERVICE_ACCOUNT_KEY }}
 
-      # Configure Docker for Google Container Registry
-      - name: Configure Docker for Google Container Registry
+      # Step 7: Configure Docker for Google Container Registry
+      - name: Configure Docker authentication
         run: gcloud auth configure-docker
 
-      # Install gke-gcloud-auth-plugin
-      - name: Install gke-gcloud-auth-plugin
+      # Step 8: Install GKE auth plugin
+      - name: Install GKE auth plugin
         run: gcloud components install gke-gcloud-auth-plugin
 
-      # Build and push Docker images
-      - name: Build and Push Docker Images
+      # Step 9: Build and push Docker image
+      - name: Build and Push Docker Image
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
-          IMAGE_NAME=gcr.io/decent-core-438006-u1/driver-pay:$COMMIT_SHA
+          IMAGE_NAME=gcr.io/${{ env.PROJECT_ID }}/driver-pay:$COMMIT_SHA
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      # Deploy to GKE
+      # Step 10: Deploy to GKE
       - name: Deploy to GKE
         run: |
-          gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
-          kubectl set image deployment/driver-pay driver-pay=gcr.io/decent-core-438006-u1/driver-pay:$COMMIT_SHA
-          kubectl apply -f ./k8s/ # Ensure the correct path for YAML files
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --region ${{ env.REGION }} --project ${{ env.PROJECT_ID }}
+          # Apply Kubernetes manifests to create the deployment (if not exists)
+          echo "Applying Kubernetes manifests"
+          kubectl apply -f ./k8s/
+          
+          # Check if the deployment exists before setting the image
+          if kubectl get deployment driver-pay; then
+            echo "Deployment exists, updating the image"
+            kubectl set image deployment/driver-pay driver-pay=gcr.io/${{ env.PROJECT_ID }}/driver-pay:$COMMIT_SHA
+          else
+            echo "Deployment not found. Check your manifests or ensure the deployment exists."
+          fi
 
-      # Check the deployment and pod status
+      # Step 11: Check deployment status
       - name: Check deployment status
         run: kubectl get deployments
 
+      # Step 12: Check pod status
       - name: Check pod status
         run: kubectl get pods
