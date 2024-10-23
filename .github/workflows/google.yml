@@ -63,6 +63,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
+          SERVICE_NAME='driver-pay'
           IMAGE_NAME=gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
@@ -73,5 +74,6 @@ jobs:
           echo "Getting credentials for cluster $CLUSTER_NAME in region $REGION"
           gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
           COMMIT_SHA=$(git rev-parse --short HEAD)
+          SERVICE_NAME='driver-pay'
           sed -i "s|gcr.io/decent-core-438006-u1/$SERVICE_NAME:latest|gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA|g" k8s/deployment.yaml
           kubectl apply -f k8s/
