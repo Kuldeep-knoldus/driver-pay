@@ -1,6 +1,5 @@
 # Stage 1: Build the Angular application
-FROM node:21 AS build
-
+FROM node:20-alpine3.20 AS build
 # Set the working directory in the container
 WORKDIR /app
 
@@ -25,11 +24,11 @@ RUN ng build
 # Use the official Nginx image as the final base image
 FROM nginx:latest
 
-# Copy the built app from the previous stage to the nginx web server directory
-COPY --from=build /app/dist/driver-pay /usr/share/nginx/html
-
 # Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy the built app from the previous stage to the nginx web server directory
+COPY --from=build /app/dist/driver-pay /usr/share/nginx/html
 
 # Expose port 80 to the Docker environment
 EXPOSE 80

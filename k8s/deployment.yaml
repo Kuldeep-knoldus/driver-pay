@@ -18,16 +18,3 @@ spec:
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: java-competency-demo-ui-service
-spec:
-  selector:
-    app: java-competency-demo-ui
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: LoadBalancer
