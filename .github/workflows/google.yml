@@ -8,9 +8,9 @@ on:
 env:
   PROJECT_ID: 'decent-core-438006-u1'
   SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
-  CLUSTER_NAME: 'driver-pay-cluster' # Your cluster name
-  REGION: 'asia-south1' # Your cluster region
-  REGISTRY_NAME: 'driver-pay' # Your Artifact Registry docker repository name
+  CLUSTER_NAME: 'driver-pay-cluster'
+  REGION: 'asia-south1'
+  REGISTRY_NAME: 'driver-pay'
 
 jobs:
   setup-build-publish-deploy:
@@ -31,7 +31,6 @@ jobs:
       # Build Angular projects
       - name: Build Projects
         run: |
-          echo "Service Name: driver-pay"
           npm install && npm test
 
       # Set up Docker Buildx
@@ -58,28 +57,26 @@ jobs:
 
       # Install gke-gcloud-auth-plugin
       - name: Install gke-gcloud-auth-plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin
+        run: gcloud components install gke-gcloud-auth-plugin
 
       # Build and push Docker images
       - name: Build and Push Docker Images
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
-          SERVICE_NAME='driver-pay'
-          echo "Building and pushing Docker image for $SERVICE_NAME"
-          IMAGE_NAME=gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA
+          IMAGE_NAME=gcr.io/decent-core-438006-u1/driver-pay:$COMMIT_SHA
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
       # Deploy to GKE
       - name: Deploy to GKE
         run: |
-          echo "Getting credentials for cluster $CLUSTER_NAME in region $REGION"
           gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
-          COMMIT_SHA=$(git rev-parse --short HEAD)
-          SERVICE_NAME='driver-pay'
-          echo "Deploying $SERVICE_NAME to GKE"
-          if [ -d "$SERVICE_NAME/k8s" ]; then
-            sed -i "s|gcr.io/decent-core-438006-u1/$SERVICE_NAME:latest|gcr.io/decent-core-438006-u1/$SERVICE_NAME:$COMMIT_SHA|g" $SERVICE_NAME/k8s/deployment.yaml
-            kubectl apply -f $SERVICE_NAME/k8s/
-          fi
+          kubectl set image deployment/driver-pay driver-pay=gcr.io/decent-core-438006-u1/driver-pay:$COMMIT_SHA
+          kubectl apply -f ./k8s/ # Ensure the correct path for YAML files
+
+      # Check the deployment and pod status
+      - name: Check deployment status
+        run: kubectl get deployments
+
+      - name: Check pod status
+        run: kubectl get pods
