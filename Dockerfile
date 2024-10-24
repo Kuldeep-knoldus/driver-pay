@@ -1,5 +1,7 @@
 FROM node:20-alpine3.20 AS build
 WORKDIR /app
+# Add a unique argument to invalidate cache when package.json changes
+ARG CACHEBUST=1
 COPY package*.json ./
 RUN npm install -g @angular/cli
 RUN npm install
@@ -7,7 +9,7 @@ COPY . .
 
 RUN ng build
 FROM nginx:latest
-#COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /var/log/app_engine
 COPY --from=build /app/dist/driver-pay/* /usr/share/nginx/html
 
